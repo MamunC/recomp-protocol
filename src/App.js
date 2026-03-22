@@ -108,7 +108,10 @@ const TYPE_META = {
 };
 
 export default function WorkoutApp() {
-  const [activeDay, setActiveDay] = useState("tuesday");
+  const [activeDay, setActiveDay] = useState(() => {
+    const dayMap = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    return dayMap[new Date().getDay()];
+  });
   const [activeTab, setActiveTab] = useState("plan");
   const [expandedEx, setExpandedEx] = useState(null);
   const [progress, setProgress] = useState(loadProgress);
@@ -193,23 +196,24 @@ export default function WorkoutApp() {
           </div>
         </div>
 
-        {/* DAY PILL STRIP */}
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, msOverflowStyle: "none", scrollbarWidth: "none" }}>
+        {/* DAY STRIP — single row, all 7 visible, no scroll */}
+        <div style={{ display: "flex", gap: 4, paddingBottom: 12 }}>
           {DAYS.map(d => {
             const complete = isDayComplete(d.id);
             const isActive = activeDay === d.id;
             return (
               <button key={d.id} onClick={() => switchDay(d.id)} className="ripple" style={{
-                flexShrink: 0, padding: "8px 14px", borderRadius: 20, border: "none",
+                flex: 1, padding: "8px 0", borderRadius: 10, border: "none",
                 background: isActive ? d.color : "rgba(255,255,255,0.05)",
-                color: isActive ? "#000" : "#64748b",
-                cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.8px",
-                display: "flex", alignItems: "center", gap: 5,
+                color: isActive ? "#000" : complete ? d.color : "#475569",
+                cursor: "pointer", fontSize: 10, fontWeight: 700, letterSpacing: "0.5px",
                 transition: "all 0.2s",
-                boxShadow: isActive ? `0 0 16px ${d.color}55` : "none",
+                boxShadow: isActive ? `0 0 12px ${d.color}55` : "none",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
               }}>
-                <span style={{ fontSize: 13 }}>{complete ? "✓" : d.icon}</span>
-                {d.label}
+                {complete && !isActive && <span style={{ fontSize: 8, color: d.color }}>✓</span>}
+                {(!complete || isActive) && <span style={{ fontSize: 11 }}>{d.icon}</span>}
+                <span>{d.label}</span>
               </button>
             );
           })}
@@ -333,6 +337,25 @@ export default function WorkoutApp() {
         ))}
       </div>
     </div>
+  );
+}
+
+function DayTile({ d, isActive, complete, onClick }) {
+  return (
+    <button onClick={onClick} className="ripple" style={{
+      padding: "9px 4px 8px",
+      borderRadius: 14,
+      border: `1.5px solid ${isActive ? d.color + "80" : "rgba(255,255,255,0.07)"}`,
+      background: isActive ? `${d.color}22` : "rgba(255,255,255,0.04)",
+      cursor: "pointer",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+      transition: "all 0.2s",
+      boxShadow: isActive ? `0 0 14px ${d.color}40` : "none",
+    }}>
+      <span style={{ fontSize: 17 }}>{complete ? "✅" : d.icon}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.5px", color: isActive ? d.color : "#64748b" }}>{d.label}</span>
+      {isActive && <span style={{ width: 4, height: 4, borderRadius: "50%", background: d.color }} />}
+    </button>
   );
 }
 
