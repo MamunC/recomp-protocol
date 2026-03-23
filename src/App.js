@@ -416,10 +416,13 @@ function NutritionView({ nutritionLog, updateNutrition }) {
       {/* Macro Summary Ring */}
       <MacroSummaryCard totals={totals} />
 
-      {/* AI Photo Scan */}
+      {/* AI Photo Scanner */}
       <PhotoMacroScanner onAdd={addEntry} />
 
-      {/* Manual Entry */}
+      {/* AI Food Name Lookup */}
+      <AIFoodLookup onAdd={addEntry} />
+
+      {/* Manual Entry — fallback */}
       <ManualEntryCard onAdd={addEntry} />
 
       {/* Food Log */}
@@ -436,9 +439,9 @@ function NutritionView({ nutritionLog, updateNutrition }) {
 
       {entries.length === 0 && (
         <div style={{ textAlign: "center", padding: "32px 0", color: "#334155" }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>📷</div>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🍽️</div>
           <div style={{ fontSize: 13, fontWeight: 600 }}>No meals logged yet</div>
-          <div style={{ fontSize: 12, marginTop: 4 }}>Take a photo or add manually</div>
+          <div style={{ fontSize: 12, marginTop: 4 }}>Search a food or enter macros manually</div>
         </div>
       )}
     </div>
@@ -497,61 +500,155 @@ function MacroSummaryCard({ totals }) {
   );
 }
 
-// ─── AI PHOTO SCANNER ────────────────────────────────────────────────────────
+// ─── AI PHOTO SCANNER (3 fixes applied) ─────────────────────────────────────
+// Fix 1: Added required browser-access headers (anthropic-version + dangerous-direct-browser-access)
+// Fix 2: Strip data URI prefix cleanly and validate base64 before sending
+// Fix 3: Vision fallback — if image analysis fails, describe the image as text and retry as a text lookup
 function PhotoMacroScanner({ onAdd }) {
   const [status, setStatus] = useState("idle"); // idle | loading | result | error
   const [result, setResult] = useState(null);
   const [preview, setPreview] = useState(null);
   const [editResult, setEditResult] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const fileRef = useRef(null);
+
+  const callVisionAPI = async (base64, mediaType) => {
+    // FIX 1: All three required headers for direct browser access
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 600,
+        system: `You are a precise nutrition analyst. The user is a 42-year-old Bangladeshi male doing body recomposition: 2100 kcal/day, 185-200g protein/day.
+Analyze the food image and return ONLY valid JSON, no markdown, no backticks:
+{
+  "foodName": "descriptive name",
+  "servingDescription": "estimated portion",
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "confidence": "high"|"medium"|"low",
+  "notes": "one sentence relevant to recomp goals"
+}
+If multiple items, sum their macros. Round to whole numbers.`,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+            { type: "text", text: "What are the macros for this food?" }
+          ]
+        }]
+      })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `API error ${response.status}`);
+    }
+    return response.json();
+  };
+
+  const callTextFallbackAPI = async (base64, mediaType) => {
+    // FIX 3: First ask the model to describe what food it sees, then look up macros
+    const describeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 150,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+            { type: "text", text: "Describe only what food/drink you see in this image in one short sentence. Include estimated portion size if visible." }
+          ]
+        }]
+      })
+    });
+    if (!describeResponse.ok) throw new Error("Fallback describe failed");
+    const descData = await describeResponse.json();
+    const description = descData.content?.map(c => c.text || "").join("").trim();
+    if (!description) throw new Error("No description returned");
+
+    // Now look up macros for the described food as a text query
+    const macroResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 600,
+        system: `You are a nutrition database. Return ONLY valid JSON, no markdown, no backticks:
+{
+  "foodName": "clean name",
+  "servingDescription": "portion as described",
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "confidence": "medium",
+  "notes": "one sentence for recomp goals"
+}`,
+        messages: [{ role: "user", content: `Macros for: ${description}` }]
+      })
+    });
+    if (!macroResponse.ok) throw new Error("Fallback macro lookup failed");
+    return macroResponse.json();
+  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // FIX 2: Validate file type and size before processing
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const mediaType = validTypes.includes(file.type) ? file.type : "image/jpeg";
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("Image too large — please use a photo under 5MB");
+      setStatus("error");
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const base64 = ev.target.result.split(",")[1];
-      const mediaType = file.type || "image/jpeg";
-      setPreview(ev.target.result);
+      const dataUrl = ev.target.result;
+      // FIX 2: Cleanly strip the data URI prefix to get pure base64
+      const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+      if (!base64 || base64.length < 100) {
+        setErrorMsg("Couldn't read image data — try a different photo");
+        setStatus("error");
+        return;
+      }
+
+      setPreview(dataUrl);
       setStatus("loading");
       setResult(null);
+      setErrorMsg("");
 
       try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            system: `You are a precise nutrition analyst. The user is a 42-year-old male doing a body recomposition program targeting 2100 calories/day and 185-200g protein/day. 
+        // Try direct vision first
+        let data;
+        try {
+          data = await callVisionAPI(base64, mediaType);
+        } catch (visionErr) {
+          console.warn("Vision API failed, trying fallback:", visionErr.message);
+          // FIX 3: Fall back to describe-then-lookup if vision fails
+          data = await callTextFallbackAPI(base64, mediaType);
+        }
 
-Analyze the food in the image and return ONLY a valid JSON object — no explanation, no markdown, no backticks. Format:
-{
-  "foodName": "descriptive name of the meal or food item",
-  "servingDescription": "estimated portion e.g. '1 medium bowl' or '2 slices'",
-  "calories": number,
-  "protein": number,
-  "carbs": number,
-  "fat": number,
-  "confidence": "high" | "medium" | "low",
-  "notes": "brief 1-sentence note about this food relative to the user's recomp goals"
-}
-
-Be realistic with portion estimates based on visual cues. If multiple items are visible, sum their macros. Round to nearest whole number.`,
-            messages: [
-              {
-                role: "user",
-                content: [
-                  { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-                  { type: "text", text: "What are the macros for this food?" }
-                ]
-              }
-            ]
-          })
-        });
-
-        const data = await response.json();
         const text = data.content?.map(c => c.text || "").join("") || "";
         const clean = text.replace(/```json|```/g, "").trim();
         const parsed = JSON.parse(clean);
@@ -559,9 +656,16 @@ Be realistic with portion estimates based on visual cues. If multiple items are 
         setEditResult({ ...parsed });
         setStatus("result");
       } catch (err) {
-        console.error(err);
+        console.error("Photo scan failed:", err);
+        setErrorMsg(err.message?.includes("400") || err.message?.includes("401")
+          ? "API key not authorised for browser access. Use the text search below instead."
+          : "Couldn't analyse this photo. Try the text search or manual entry below.");
         setStatus("error");
       }
+    };
+    reader.onerror = () => {
+      setErrorMsg("Failed to read image file");
+      setStatus("error");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -584,6 +688,7 @@ Be realistic with portion estimates based on visual cues. If multiple items are 
     setResult(null);
     setPreview(null);
     setEditResult(null);
+    setErrorMsg("");
   };
 
   const handleDiscard = () => {
@@ -591,97 +696,316 @@ Be realistic with portion estimates based on visual cues. If multiple items are 
     setResult(null);
     setPreview(null);
     setEditResult(null);
+    setErrorMsg("");
   };
 
   const confidenceColor = { high: "#34d399", medium: "#fbbf24", low: "#fb7185" };
 
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>📷 AI Food Scanner</div>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>📷 Photo Scanner</div>
 
       {status === "idle" && (
         <button onClick={() => fileRef.current?.click()} className="ripple" style={{
-          width: "100%", padding: "16px", border: "2px dashed rgba(52,211,153,0.25)", borderRadius: 16,
-          background: "rgba(52,211,153,0.04)", cursor: "pointer", color: "#34d399",
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 6, transition: "all 0.2s"
+          width: "100%", padding: "14px 16px", border: "2px dashed rgba(52,211,153,0.2)", borderRadius: 16,
+          background: "rgba(52,211,153,0.03)", cursor: "pointer", color: "#34d399",
+          display: "flex", alignItems: "center", gap: 12, transition: "all 0.2s"
         }}>
-          <span style={{ fontSize: 28 }}>📸</span>
-          <span style={{ fontSize: 14, fontWeight: 600 }}>Take a photo or upload food</span>
-          <span style={{ fontSize: 11, color: "#475569" }}>AI will estimate calories & macros instantly</span>
+          <span style={{ fontSize: 26, flexShrink: 0 }}>📸</span>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Take or upload a food photo</div>
+            <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>AI identifies the food and estimates macros</div>
+          </div>
         </button>
       )}
 
       {status === "loading" && (
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 16 }}>
-          {preview && <img src={preview} alt="food" style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 12, marginBottom: 14 }} />}
-          <div style={{ display: "flex", align: "center", gap: 10 }}>
-            <div className="shimmer-bg" style={{ height: 12, borderRadius: 6, flex: 1 }} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 12, color: "#475569", fontSize: 13 }}>
-            <span className="spinning" style={{ display: "inline-block", fontSize: 18 }}>⚙️</span>
-            Analysing food with AI…
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden" }}>
+          {preview && <img src={preview} alt="food" style={{ width: "100%", height: 130, objectFit: "cover" }} />}
+          <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+            <span className="spinning" style={{ display: "inline-block", fontSize: 18, flexShrink: 0 }}>⚙️</span>
+            <div style={{ flex: 1 }}>
+              <div className="shimmer-bg" style={{ height: 9, borderRadius: 5, marginBottom: 7, width: "65%" }} />
+              <div className="shimmer-bg" style={{ height: 9, borderRadius: 5, width: "40%" }} />
+            </div>
+            <span style={{ fontSize: 11, color: "#475569" }}>Analysing…</span>
           </div>
         </div>
       )}
 
       {status === "result" && editResult && (
         <div className="slide-up" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 16, overflow: "hidden" }}>
-          <div style={{ display: "flex", gap: 0 }}>
-            {preview && <img src={preview} alt="food" style={{ width: 90, height: 90, objectFit: "cover", flexShrink: 0 }} />}
-            <div style={{ padding: "12px 14px", flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: "#e2e8f0", marginBottom: 2 }}>{editResult.foodName}</div>
+          <div style={{ display: "flex" }}>
+            {preview && <img src={preview} alt="food" style={{ width: 88, height: 88, objectFit: "cover", flexShrink: 0 }} />}
+            <div style={{ padding: "12px 14px", flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "#e2e8f0", marginBottom: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{editResult.foodName}</div>
               <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>{editResult.servingDescription}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#34d399", fontFamily: "'Space Grotesk'" }}>{editResult.calories}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#34d399", fontFamily: "'Space Grotesk'" }}>{editResult.calories}</span>
                 <span style={{ fontSize: 10, color: "#475569" }}>kcal</span>
-                <span style={{ fontSize: 10, background: `${confidenceColor[result?.confidence]}22`, color: confidenceColor[result?.confidence], borderRadius: 5, padding: "1px 6px", fontWeight: 700, marginLeft: 4 }}>{result?.confidence} confidence</span>
+                {result?.confidence && (
+                  <span style={{ fontSize: 10, background: `${confidenceColor[result.confidence]}20`, color: confidenceColor[result.confidence], borderRadius: 5, padding: "1px 6px", fontWeight: 700 }}>{result.confidence}</span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Editable macros */}
-          <div style={{ padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ fontSize: 11, color: "#475569", marginBottom: 10, fontWeight: 600 }}>REVIEW & ADJUST</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+          <div style={{ padding: "12px 14px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "1px", marginBottom: 8 }}>ADJUST IF NEEDED</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
               {[
-                { key: "calories", label: "Calories", color: "#34d399", unit: "kcal" },
+                { key: "calories", label: "Cal", color: "#34d399", unit: "kcal" },
                 { key: "protein", label: "Protein", color: "#fb7185", unit: "g" },
                 { key: "carbs", label: "Carbs", color: "#38bdf8", unit: "g" },
                 { key: "fat", label: "Fat", color: "#fbbf24", unit: "g" },
               ].map(f => (
-                <div key={f.key}>
+                <div key={f.key} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 10, color: "#475569", marginBottom: 4, fontWeight: 600 }}>{f.label}</div>
-                  <input
-                    className="inp"
-                    type="number"
-                    value={editResult[f.key]}
+                  <input className="inp" type="number" value={editResult[f.key]}
                     onChange={e => setEditResult(r => ({ ...r, [f.key]: e.target.value }))}
-                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${f.color}30`, borderRadius: 8, padding: "6px 8px", color: f.color, fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk'" }}
-                  />
+                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${f.color}35`, borderRadius: 9, padding: "7px 3px", color: f.color, fontSize: 14, fontWeight: 700, fontFamily: "'Space Grotesk'", textAlign: "center" }} />
                   <div style={{ fontSize: 9, color: "#334155", marginTop: 2 }}>{f.unit}</div>
                 </div>
               ))}
             </div>
-            {result?.notes && (
-              <div style={{ marginTop: 10, fontSize: 12, color: "#64748b", fontStyle: "italic", lineHeight: 1.5 }}>💡 {result.notes}</div>
-            )}
+            {result?.notes && <div style={{ marginTop: 10, fontSize: 11.5, color: "#64748b", fontStyle: "italic", lineHeight: 1.5 }}>💡 {result.notes}</div>}
           </div>
 
-          <div style={{ display: "flex", gap: 0, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <button onClick={handleDiscard} className="ripple" style={{ flex: 1, padding: 14, background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Discard</button>
-            <button onClick={handleAdd} className="ripple" style={{ flex: 2, padding: 14, background: "rgba(52,211,153,0.12)", border: "none", borderLeft: "1px solid rgba(255,255,255,0.06)", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>+ Add to Log</button>
+          <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            <button onClick={handleDiscard} className="ripple" style={{ flex: 1, padding: "13px", background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Discard</button>
+            <button onClick={handleAdd} className="ripple" style={{ flex: 2, padding: "13px", background: "rgba(52,211,153,0.1)", border: "none", borderLeft: "1px solid rgba(255,255,255,0.05)", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>+ Add to Log</button>
           </div>
         </div>
       )}
 
       {status === "error" && (
-        <div style={{ background: "rgba(251,113,133,0.08)", border: "1px solid rgba(251,113,133,0.2)", borderRadius: 14, padding: 14, textAlign: "center" }}>
-          <div style={{ fontSize: 13, color: "#fb7185", marginBottom: 8 }}>Couldn't read that image. Try a clearer photo with better lighting.</div>
-          <button onClick={() => { setStatus("idle"); setPreview(null); }} className="ripple" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 16px", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>Try again</button>
+        <div style={{ background: "rgba(251,113,133,0.07)", border: "1px solid rgba(251,113,133,0.18)", borderRadius: 14, padding: "12px 14px" }}>
+          <div style={{ fontSize: 12.5, color: "#fb7185", marginBottom: 10, lineHeight: 1.5 }}>{errorMsg || "Couldn't analyse this photo."}</div>
+          <button onClick={handleDiscard} className="ripple" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "7px 14px", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>Try again</button>
         </div>
       )}
 
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{ display: "none" }} />
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" capture="environment" onChange={handlePhoto} style={{ display: "none" }} />
+    </div>
+  );
+}
+
+// ─── AI FOOD LOOKUP ───────────────────────────────────────────────────────────
+function AIFoodLookup({ onAdd }) {
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | result | error
+  const [result, setResult] = useState(null);
+  const [editResult, setEditResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const QUICK_PICKS = [
+    "2 eggs scrambled", "Greek yogurt", "Chicken breast 150g",
+    "White rice 1 cup", "Banana", "Protein shake",
+    "Dal and rice", "Roti 2 pieces", "Oats with milk",
+  ];
+
+  const lookup = async (foodQuery) => {
+    const q = (foodQuery || query).trim();
+    if (!q) return;
+    setStatus("loading");
+    setResult(null);
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 600,
+          system: `You are a nutrition database. The user is a 42-year-old Bangladeshi male doing body recomposition: 2100 kcal/day target, 185-200g protein/day.
+
+Return ONLY valid JSON, no markdown, no backticks, no explanation:
+{
+  "foodName": "clean standardised name",
+  "servingDescription": "the portion as described or a typical serving",
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "notes": "one sentence about this food for his recomp goals — protein density, timing, or substitution tip"
+}
+
+Use standard nutrition database values. If the query is ambiguous (e.g. 'dal') assume a typical Bangladeshi/South Asian preparation and standard home serving. Round all macros to nearest whole number.`,
+          messages: [{ role: "user", content: `Macros for: ${q}` }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.map(c => c.text || "").join("") || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setResult(parsed);
+      setEditResult({ ...parsed });
+      setStatus("result");
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+    }
+  };
+
+  const handleAdd = () => {
+    if (!editResult) return;
+    onAdd({
+      foodName: editResult.foodName,
+      servingDescription: editResult.servingDescription,
+      calories: Number(editResult.calories) || 0,
+      protein: Number(editResult.protein) || 0,
+      carbs: Number(editResult.carbs) || 0,
+      fat: Number(editResult.fat) || 0,
+      source: "ai",
+      notes: result?.notes,
+    });
+    setStatus("idle");
+    setQuery("");
+    setResult(null);
+    setEditResult(null);
+  };
+
+  const handleReset = () => {
+    setStatus("idle");
+    setResult(null);
+    setEditResult(null);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>🤖 AI Macro Lookup</div>
+
+      {/* Search bar — always visible unless showing result */}
+      {status !== "result" && (
+        <>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <input
+              ref={inputRef}
+              className="inp"
+              placeholder='e.g. "2 eggs and toast" or "chicken biryani"'
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && lookup()}
+              style={{
+                flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 12, padding: "12px 14px", color: "#e2e8f0", fontSize: 14,
+                fontFamily: "'DM Sans'"
+              }}
+            />
+            <button
+              onClick={() => lookup()}
+              disabled={!query.trim() || status === "loading"}
+              className="ripple"
+              style={{
+                padding: "12px 16px", borderRadius: 12, border: "none",
+                background: query.trim() ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.05)",
+                color: query.trim() ? "#34d399" : "#334155",
+                cursor: query.trim() ? "pointer" : "default", fontSize: 18,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                transition: "all 0.2s"
+              }}>
+              {status === "loading" ? <span className="spinning" style={{ display: "inline-block" }}>⚙️</span> : "→"}
+            </button>
+          </div>
+
+          {/* Quick picks */}
+          {status === "idle" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {QUICK_PICKS.map(pick => (
+                <button key={pick} onClick={() => { setQuery(pick); lookup(pick); }} className="ripple" style={{
+                  padding: "5px 11px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.04)", color: "#64748b", cursor: "pointer",
+                  fontSize: 11, fontWeight: 500, transition: "all 0.15s"
+                }}>{pick}</button>
+              ))}
+            </div>
+          )}
+
+          {status === "loading" && (
+            <div style={{ padding: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div className="shimmer-bg" style={{ height: 10, borderRadius: 5, marginBottom: 8, width: "60%" }} />
+                <div className="shimmer-bg" style={{ height: 10, borderRadius: 5, width: "40%" }} />
+              </div>
+              <span style={{ color: "#475569", fontSize: 12 }}>Looking up macros…</span>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div style={{ padding: "12px 14px", background: "rgba(251,113,133,0.07)", border: "1px solid rgba(251,113,133,0.2)", borderRadius: 12, fontSize: 12, color: "#fb7185" }}>
+              Couldn't look that up. Try being more specific — e.g. "grilled chicken breast 150g"
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Result card */}
+      {status === "result" && editResult && (
+        <div className="slide-up" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 16, overflow: "hidden" }}>
+          {/* Header */}
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "#e2e8f0", marginBottom: 2 }}>{editResult.foodName}</div>
+                <div style={{ fontSize: 12, color: "#475569" }}>{editResult.servingDescription}</div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 22, color: "#34d399", lineHeight: 1 }}>{editResult.calories}</div>
+                <div style={{ fontSize: 10, color: "#475569" }}>kcal</div>
+              </div>
+            </div>
+            {result?.notes && (
+              <div style={{ marginTop: 10, fontSize: 12, color: "#64748b", lineHeight: 1.5, fontStyle: "italic" }}>
+                💡 {result.notes}
+              </div>
+            )}
+          </div>
+
+          {/* Editable macro grid */}
+          <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "1px", marginBottom: 10 }}>ADJUST IF NEEDED</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+              {[
+                { key: "calories", label: "Cal", color: "#34d399", unit: "kcal" },
+                { key: "protein", label: "Protein", color: "#fb7185", unit: "g" },
+                { key: "carbs", label: "Carbs", color: "#38bdf8", unit: "g" },
+                { key: "fat", label: "Fat", color: "#fbbf24", unit: "g" },
+              ].map(f => (
+                <div key={f.key} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 10, color: "#475569", marginBottom: 5, fontWeight: 600 }}>{f.label}</div>
+                  <input
+                    className="inp"
+                    type="number"
+                    value={editResult[f.key]}
+                    onChange={e => setEditResult(r => ({ ...r, [f.key]: e.target.value }))}
+                    style={{
+                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${f.color}35`,
+                      borderRadius: 10, padding: "8px 4px", color: f.color, fontSize: 15,
+                      fontWeight: 700, fontFamily: "'Space Grotesk'", textAlign: "center"
+                    }}
+                  />
+                  <div style={{ fontSize: 9, color: "#334155", marginTop: 3 }}>{f.unit}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: "flex" }}>
+            <button onClick={handleReset} className="ripple" style={{
+              flex: 1, padding: "13px", background: "transparent", border: "none",
+              color: "#475569", cursor: "pointer", fontSize: 13, fontWeight: 600
+            }}>← Search again</button>
+            <button onClick={handleAdd} className="ripple" style={{
+              flex: 2, padding: "13px", background: "rgba(52,211,153,0.12)", border: "none",
+              borderLeft: "1px solid rgba(255,255,255,0.06)", color: "#34d399",
+              cursor: "pointer", fontSize: 13, fontWeight: 700
+            }}>+ Add to Log</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
