@@ -441,7 +441,7 @@ function NutritionView({ nutritionLog, updateNutrition }) {
         <div style={{ textAlign: "center", padding: "32px 0", color: "#334155" }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>🍽️</div>
           <div style={{ fontSize: 13, fontWeight: 600 }}>No meals logged yet</div>
-          <div style={{ fontSize: 12, marginTop: 4 }}>Search a food or enter macros manually</div>
+          <div style={{ fontSize: 12, marginTop: 4 }}>Describe any food or meal above to get macros</div>
         </div>
       )}
     </div>
@@ -500,135 +500,92 @@ function MacroSummaryCard({ totals }) {
   );
 }
 
-// ─── FOOD DATABASE (offline, no API needed) ──────────────────────────────────
-const FOOD_DB = [
-  // Proteins
-  { name: "Chicken Breast, grilled", serving: "150g", cal: 248, p: 46, c: 0, f: 5, note: "Best protein-per-calorie on your plan. Hit this daily." },
-  { name: "Chicken Breast, boiled", serving: "150g", cal: 232, p: 44, c: 0, f: 4, note: "Lean and easy. Add spices post-cook to keep it interesting." },
-  { name: "Chicken Thigh, grilled", serving: "150g", cal: 294, p: 38, c: 0, f: 15, note: "More fat than breast but good protein. Account for the extra cals." },
-  { name: "Egg, whole", serving: "1 large (50g)", cal: 70, p: 6, c: 0, f: 5, note: "Yolk has choline and fat-soluble vitamins — don't always discard it." },
-  { name: "Egg whites", serving: "3 whites (99g)", cal: 51, p: 11, c: 1, f: 0, note: "Pure protein, zero fat. Good for hitting protein without extra cals." },
-  { name: "Eggs scrambled (2)", serving: "2 eggs + splash milk", cal: 180, p: 13, c: 2, f: 13, note: "Quick protein hit. Cook in minimal oil to control fat." },
-  { name: "Tuna, canned in water", serving: "1 can (170g drained)", cal: 150, p: 35, c: 0, f: 1, note: "Highest protein density of any convenient food. Keep cans stocked." },
-  { name: "Tuna, canned in oil", serving: "1 can (170g drained)", cal: 280, p: 34, c: 0, f: 15, note: "Drain well. Water-packed is better for recomp." },
-  { name: "Salmon, fillet", serving: "150g", cal: 280, p: 39, c: 0, f: 13, note: "Omega-3s support inflammation recovery post-exercise. Worth the cals." },
-  { name: "Beef mince, lean (5%)", serving: "150g cooked", cal: 242, p: 37, c: 0, f: 10, note: "Creatine-rich. Good post-training meal protein." },
-  { name: "Beef mince, regular (20%)", serving: "150g cooked", cal: 370, p: 32, c: 0, f: 26, note: "High fat — use lean mince for better macro balance." },
-  { name: "Shrimp / Prawns", serving: "150g cooked", cal: 150, p: 29, c: 2, f: 2, note: "Exceptional protein-to-calorie ratio. Underrated recomp food." },
-  { name: "Greek yogurt, full fat", serving: "200g", cal: 196, p: 14, c: 8, f: 10, note: "Casein protein — good before bed. High fat version is filling." },
-  { name: "Greek yogurt, 0%", serving: "200g", cal: 116, p: 20, c: 8, f: 0, note: "Best yogurt for recomp — high protein, low cals. Add berries for carbs." },
-  { name: "Cottage cheese", serving: "200g", cal: 166, p: 24, c: 6, f: 4, note: "Slow-digesting casein. Ideal pre-sleep protein to hit your 185g target." },
-  { name: "Whey protein shake", serving: "1 scoop (30g) in water", cal: 120, p: 24, c: 3, f: 2, note: "Use post-workout or to bridge protein gaps. Not a meal replacement." },
-  { name: "Whey protein shake with milk", serving: "1 scoop + 250ml whole milk", cal: 280, p: 30, c: 15, f: 9, note: "Better post-workout if you need the extra carbs and cals." },
-  { name: "Paneer", serving: "100g", cal: 265, p: 18, c: 3, f: 20, note: "Good vegetarian protein but high fat. Keep portions measured." },
-  { name: "Lentils / Dal, cooked", serving: "1 cup (200g)", cal: 230, p: 18, c: 40, f: 1, note: "Solid plant protein with fibre. Typical Bangladeshi dal is ~similar." },
-  { name: "Dal and rice (home cooked)", serving: "1 plate (~350g)", cal: 480, p: 18, c: 85, f: 6, note: "Carb-heavy. Increase protein with extra dal or add chicken." },
-  { name: "Chickpeas, cooked", serving: "1 cup (160g)", cal: 270, p: 15, c: 45, f: 4, note: "High fibre keeps you full. Good carb source for training days." },
+// ─── AI MACRO PARSER ─────────────────────────────────────────────────────────
+// Accepts any free-text food description, calls Claude to parse macros
+async function parseMacrosWithAI(description) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 600,
+      system: `You are a precise nutrition database for a 42-year-old Bangladeshi male doing body recomposition: 2100 kcal/day target, 185-200g protein/day.
 
-  // Carbs & Grains
-  { name: "White rice, cooked", serving: "1 cup (186g)", cal: 242, p: 4, c: 53, f: 0, note: "Fast carb. Best timed around workouts. Easy to overeat — measure it." },
-  { name: "Brown rice, cooked", serving: "1 cup (195g)", cal: 216, p: 5, c: 45, f: 2, note: "More fibre than white rice. Better blood sugar response." },
-  { name: "Oats, rolled (dry)", serving: "50g dry (~1 cup cooked)", cal: 190, p: 7, c: 33, f: 4, note: "Excellent slow-release breakfast carb. Add protein powder to hit your targets." },
-  { name: "Oats with milk", serving: "50g oats + 200ml whole milk", cal: 330, p: 14, c: 45, f: 10, note: "Solid breakfast. Swap whole milk for skimmed to save ~60 cals." },
-  { name: "Roti / Chapati", serving: "1 medium (40g)", cal: 120, p: 3, c: 23, f: 2, note: "2 rotis is typical. Watch portions — easy to eat 4-5 without noticing." },
-  { name: "Roti, 2 pieces", serving: "2 roti (80g)", cal: 240, p: 6, c: 46, f: 4, note: "Standard serving. Pair with high-protein curry to balance the meal." },
-  { name: "White bread, sliced", serving: "2 slices (60g)", cal: 160, p: 5, c: 30, f: 2, note: "Fast carb. Lower protein than whole grain. Fine pre-workout." },
-  { name: "Pasta, cooked", serving: "1 cup (140g)", cal: 220, p: 8, c: 43, f: 1, note: "Good training day carb. Protein is low — pair with meat sauce." },
-  { name: "Potato, boiled", serving: "1 medium (150g)", cal: 130, p: 3, c: 30, f: 0, note: "Surprisingly filling per calorie. Better than rice for satiety." },
-  { name: "Sweet potato, baked", serving: "1 medium (150g)", cal: 130, p: 3, c: 30, f: 0, note: "Same cals as white potato with more micronutrients. Good swap." },
+The user will describe a meal, snack, or food item in plain English — including quantities, combinations, and restaurant dishes from any cuisine.
 
-  // Bangladeshi / South Asian
-  { name: "Chicken biryani", serving: "1 plate (~400g)", cal: 580, p: 28, c: 65, f: 18, note: "High cal but reasonable protein. Oil and ghee add up — be aware." },
-  { name: "Beef biryani", serving: "1 plate (~400g)", cal: 640, p: 30, c: 65, f: 24, note: "Higher fat than chicken biryani. Good protein but heavy on cals." },
-  { name: "Khichuri", serving: "1 bowl (~300g)", cal: 380, p: 15, c: 60, f: 8, note: "Comfort food but protein is low. Add egg or chicken on the side." },
-  { name: "Fish curry (hilsa/rohu)", serving: "1 piece + curry (~200g)", cal: 280, p: 26, c: 5, f: 17, note: "Hilsa is high in omega-3. Good protein hit in a typical home meal." },
-  { name: "Bhuna chicken", serving: "2 pieces (~200g)", cal: 320, p: 38, c: 4, f: 16, note: "Dry-cooked so less oil than curry. Solid recomp meal." },
-  { name: "Paratha", serving: "1 medium (70g)", cal: 220, p: 4, c: 28, f: 11, note: "Much higher fat than roti due to oil/ghee. Limit to 1 at a time." },
-  { name: "Haleem", serving: "1 bowl (~250g)", cal: 350, p: 22, c: 35, f: 12, note: "Protein-rich slow-cooked dish. One of the better macro ratios in South Asian cuisine." },
-  { name: "Dhal puri / stuffed roti", serving: "1 piece (100g)", cal: 280, p: 8, c: 42, f: 9, note: "Higher in fat than plain roti. Protein is low — add a side." },
-  { name: "Saag / spinach curry", serving: "1 cup (200g)", cal: 120, p: 5, c: 10, f: 7, note: "Low cal, high micronutrients. Fill half your plate with this." },
-  { name: "Vegetable curry", serving: "1 cup (200g)", cal: 150, p: 4, c: 18, f: 7, note: "Depends on oil used. Home-cooked usually less oily than restaurant." },
-
-  // Dairy & Fats
-  { name: "Whole milk", serving: "250ml (1 glass)", cal: 152, p: 8, c: 12, f: 8, note: "Good protein per glass but fat adds up. Semi-skimmed saves ~40 cals." },
-  { name: "Skimmed milk", serving: "250ml", cal: 88, p: 9, c: 12, f: 0, note: "Best milk for recomp — keeps the protein, drops the fat." },
-  { name: "Cheddar cheese", serving: "30g (1 slice)", cal: 120, p: 7, c: 0, f: 10, note: "Easy to overeat. Measure it — 30g disappears fast." },
-  { name: "Butter", serving: "1 tbsp (14g)", cal: 100, p: 0, c: 0, f: 11, note: "Pure fat. Adds up quickly in cooking — measure rather than eyeball." },
-  { name: "Olive oil", serving: "1 tbsp (14g)", cal: 119, p: 0, c: 0, f: 14, note: "Healthy fat but dense in cals. Use a spray to control portions." },
-  { name: "Almonds", serving: "30g (small handful)", cal: 174, p: 6, c: 5, f: 15, note: "Nutrient-dense but easy to overeat. Measure by weight, not by the bag." },
-  { name: "Peanut butter", serving: "2 tbsp (32g)", cal: 190, p: 8, c: 6, f: 16, note: "Good protein but high fat. Stick to 1 tbsp if calories are tight." },
-
-  // Fruits & Veg
-  { name: "Banana", serving: "1 medium (118g)", cal: 105, p: 1, c: 27, f: 0, note: "Good pre-workout carb. High in potassium for muscle function." },
-  { name: "Apple", serving: "1 medium (182g)", cal: 95, p: 0, c: 25, f: 0, note: "High fibre, low cal. Good snack to manage hunger." },
-  { name: "Mango", serving: "1 cup sliced (165g)", cal: 99, p: 1, c: 25, f: 1, note: "High in sugar. Fine in moderation but don't eat half a mango freely." },
-  { name: "Orange", serving: "1 medium (131g)", cal: 62, p: 1, c: 15, f: 0, note: "Vitamin C aids iron absorption. Low cal snack." },
-  { name: "Berries (mixed)", serving: "1 cup (150g)", cal: 85, p: 1, c: 20, f: 1, note: "Lowest sugar of all fruits. Add to yogurt or oats for volume." },
-
-  // Snacks & Misc
-  { name: "Protein bar", serving: "1 bar (60g)", cal: 200, p: 20, c: 20, f: 7, note: "Check the label — many are glorified chocolate bars. 20g protein is the minimum worth buying." },
-  { name: "Rice cakes", serving: "3 cakes (30g)", cal: 114, p: 2, c: 24, f: 1, note: "Low cal carb filler. Useful when cutting but essentially empty cals." },
-  { name: "Boiled egg", serving: "1 large", cal: 70, p: 6, c: 1, f: 5, note: "Perfect portable protein. Keep 4-5 boiled in the fridge at all times." },
-  { name: "Samosa (fried)", serving: "1 medium (60g)", cal: 130, p: 3, c: 16, f: 6, note: "Low protein, moderate fat. Fine occasionally but don't count on it for macros." },
-];
-
-// Fuzzy search — scores each food against the query
-function searchFoods(query) {
-  if (!query.trim()) return [];
-  const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-  return FOOD_DB
-    .map(food => {
-      const haystack = food.name.toLowerCase();
-      let score = 0;
-      for (const term of terms) {
-        if (haystack.includes(term)) score += term.length * 2;
-        else if ([...term].some((_, i) => i < term.length - 1 && haystack.includes(term.slice(0, i + 2)))) score += 1;
-      }
-      return { ...food, score };
-    })
-    .filter(f => f.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 6);
+Return ONLY a valid JSON object, no markdown, no backticks, no explanation:
+{
+  "foodName": "concise display name for the full entry",
+  "servingDescription": "restate what was described as a portion summary",
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "note": "one practical sentence about this food relative to recomp goals — protein density, timing, or swap suggestion"
 }
 
-// ─── COMBINED FOOD SEARCH (offline DB + photo upload for visual hint) ─────────
+Rules:
+- When multiple items are listed (e.g. "yogurt with strawberries and almonds"), sum ALL their macros into ONE result
+- Use standard USDA / nutrition database values for each component
+- For restaurant dishes (shawarma, biryani, pad thai etc.) use typical restaurant portion values
+- For vague quantities like "some nuts" or "a handful", use 30g as default
+- For "1/2 cup" use ~120ml volume equivalent in grams for the food type
+- Round all numbers to nearest whole integer`,
+      messages: [{ role: "user", content: description }],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API ${res.status}`);
+  }
+  const data = await res.json();
+  const text = data.content?.map(c => c.text || "").join("") || "";
+  const clean = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+// ─── FOOD MACRO SCANNER ───────────────────────────────────────────────────────
 function PhotoMacroScanner({ onAdd }) {
-  const [preview, setPreview] = useState(null);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | loading | result | error
+  const [result, setResult] = useState(null);
   const [edit, setEdit] = useState(null);
-  const fileRef = useRef(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const inputRef = useRef(null);
 
-  const handleSearch = (q) => {
-    setQuery(q);
-    setSelected(null);
-    setEdit(null);
-    setResults(q.trim().length > 1 ? searchFoods(q) : []);
-  };
+  const QUICK_PICKS = [
+    "2 scrambled eggs on toast",
+    "Chicken shawarma wrap",
+    "½ cup Greek yogurt with 5 strawberries and almonds",
+    "Dal and rice, home cooked",
+    "Chicken biryani, restaurant",
+    "Protein shake with banana",
+    "3 roti with bhuna chicken",
+    "Oats with milk and honey",
+    "Grilled salmon 150g",
+    "Caesar salad with chicken",
+  ];
 
-  const handlePhoto = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPreview(ev.target.result);
-      setQuery("");
-      setResults([]);
-      setSelected(null);
-      setEdit(null);
-      // Focus the search input so user types what they see
-      setTimeout(() => inputRef.current?.focus(), 100);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
-
-  const handleSelect = (food) => {
-    setSelected(food);
-    setEdit({ foodName: food.name, servingDescription: food.serving, calories: food.cal, protein: food.p, carbs: food.c, fat: food.f });
-    setResults([]);
+  const handleLookup = async (q) => {
+    const text = (q || query).trim();
+    if (!text) return;
+    setStatus("loading");
+    setResult(null);
+    setErrorMsg("");
+    try {
+      const parsed = await parseMacrosWithAI(text);
+      setResult(parsed);
+      setEdit({ ...parsed });
+      setStatus("result");
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Couldn't calculate macros. Check your connection and try again.");
+      setStatus("error");
+    }
   };
 
   const handleAdd = () => {
@@ -640,98 +597,114 @@ function PhotoMacroScanner({ onAdd }) {
       protein: Number(edit.protein) || 0,
       carbs: Number(edit.carbs) || 0,
       fat: Number(edit.fat) || 0,
-      source: preview ? "photo" : "search",
-      notes: selected?.note,
+      source: "ai",
+      notes: result?.note,
     });
-    setPreview(null); setQuery(""); setResults([]); setSelected(null); setEdit(null);
+    setQuery(""); setStatus("idle"); setResult(null); setEdit(null); setErrorMsg("");
   };
 
   const handleReset = () => {
-    setPreview(null); setQuery(""); setResults([]); setSelected(null); setEdit(null);
+    setStatus("idle"); setResult(null); setEdit(null); setErrorMsg("");
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
-
-  const QUICK_PICKS = ["Chicken breast", "Eggs", "Dal and rice", "Greek yogurt", "Roti", "Oats", "Tuna", "Protein shake", "Biryani"];
 
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>🔍 Food Search</div>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: "#64748b", marginBottom: 8, textTransform: "uppercase" }}>🤖 AI Macro Calculator</div>
 
-      {/* Photo preview strip */}
-      {preview && (
-        <div style={{ marginBottom: 10, borderRadius: 14, overflow: "hidden", position: "relative" }}>
-          <img src={preview} alt="food" style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(8,8,16,0.85) 0%, transparent 60%)", display: "flex", alignItems: "flex-end", padding: "10px 12px" }}>
-            <span style={{ fontSize: 12, color: "#94a3b8" }}>Now search what you see in the photo ↓</span>
-          </div>
-          <button onClick={handleReset} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 20, color: "#fff", fontSize: 11, padding: "3px 9px", cursor: "pointer" }}>✕ clear</button>
-        </div>
-      )}
-
-      {/* Search row */}
-      {!edit && (
+      {/* Input — always show unless viewing result */}
+      {status !== "result" && (
         <>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
             <input
               ref={inputRef}
               className="inp"
-              placeholder={preview ? "What food is this?" : 'Search e.g. "chicken breast" or "dal rice"'}
+              placeholder='Describe anything — "chicken shawarma" or "½ cup yogurt with strawberries and nuts"'
               value={query}
-              onChange={e => handleSearch(e.target.value)}
-              style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "11px 14px", color: "#e2e8f0", fontSize: 14, fontFamily: "'DM Sans'" }}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && status !== "loading" && handleLookup()}
+              style={{
+                flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 13, padding: "12px 14px", color: "#e2e8f0", fontSize: 14,
+                fontFamily: "'DM Sans'", lineHeight: 1.4,
+              }}
             />
-            <button onClick={() => fileRef.current?.click()} className="ripple" title="Upload photo" style={{ padding: "11px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#64748b", cursor: "pointer", fontSize: 18, flexShrink: 0 }}>📷</button>
+            <button
+              onClick={() => handleLookup()}
+              disabled={!query.trim() || status === "loading"}
+              className="ripple"
+              style={{
+                padding: "12px 16px", borderRadius: 13, border: "none", flexShrink: 0,
+                background: query.trim() && status !== "loading" ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.05)",
+                color: query.trim() && status !== "loading" ? "#34d399" : "#334155",
+                cursor: query.trim() && status !== "loading" ? "pointer" : "default",
+                fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.2s",
+              }}>
+              {status === "loading"
+                ? <span className="spinning" style={{ display: "inline-block", fontSize: 16 }}>⚙️</span>
+                : "→"}
+            </button>
           </div>
 
           {/* Quick picks */}
-          {!query && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 }}>
+          {status === "idle" && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
               {QUICK_PICKS.map(p => (
-                <button key={p} onClick={() => handleSearch(p)} className="ripple" style={{ padding: "4px 10px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#64748b", cursor: "pointer", fontSize: 11, fontWeight: 500 }}>{p}</button>
+                <button key={p} onClick={() => { setQuery(p); handleLookup(p); }} className="ripple" style={{
+                  padding: "4px 11px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.04)", color: "#64748b", cursor: "pointer",
+                  fontSize: 11, fontWeight: 500, transition: "all 0.15s",
+                }}>{p}</button>
               ))}
             </div>
           )}
 
-          {/* Search results */}
-          {results.length > 0 && (
-            <div style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, overflow: "hidden", marginTop: 4 }}>
-              {results.map((food, i) => (
-                <button key={food.name} onClick={() => handleSelect(food)} className="ripple" style={{
-                  width: "100%", padding: "11px 14px", border: "none", borderBottom: i < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                  background: "rgba(255,255,255,0.03)", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10
-                }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{food.name}</div>
-                    <div style={{ fontSize: 11, color: "#475569", marginTop: 1 }}>{food.serving}</div>
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#34d399", fontFamily: "'Space Grotesk'" }}>{food.cal}</div>
-                    <div style={{ fontSize: 10, color: "#475569" }}>kcal · {food.p}g P</div>
-                  </div>
-                </button>
-              ))}
+          {/* Loading skeleton */}
+          {status === "loading" && (
+            <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14 }}>
+              <div className="shimmer-bg" style={{ height: 11, borderRadius: 5, width: "55%", marginBottom: 9 }} />
+              <div className="shimmer-bg" style={{ height: 9, borderRadius: 5, width: "35%", marginBottom: 14 }} />
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
+                {[1,2,3,4].map(i => <div key={i} className="shimmer-bg" style={{ height: 32, borderRadius: 8 }} />)}
+              </div>
             </div>
           )}
 
-          {query.length > 2 && results.length === 0 && (
-            <div style={{ fontSize: 12, color: "#475569", textAlign: "center", padding: "10px 0" }}>
-              No match — try "manual entry" below to add custom macros
+          {/* Error */}
+          {status === "error" && (
+            <div style={{ padding: "12px 14px", background: "rgba(251,113,133,0.07)", border: "1px solid rgba(251,113,133,0.2)", borderRadius: 12 }}>
+              <div style={{ fontSize: 12.5, color: "#fb7185", marginBottom: 8, lineHeight: 1.5 }}>{errorMsg}</div>
+              <button onClick={handleReset} className="ripple" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 14px", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>Try again</button>
             </div>
           )}
         </>
       )}
 
-      {/* Selected food — edit & confirm */}
-      {edit && (
-        <div className="slide-up" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 16, overflow: "hidden" }}>
-          {preview && <img src={preview} alt="food" style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />}
-          <div style={{ padding: "13px 15px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#e2e8f0" }}>{edit.foodName}</div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>{edit.servingDescription}</div>
-            {selected?.note && <div style={{ marginTop: 8, fontSize: 11.5, color: "#64748b", fontStyle: "italic", lineHeight: 1.5 }}>💡 {selected.note}</div>}
+      {/* Result card */}
+      {status === "result" && edit && (
+        <div className="slide-up" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 16, overflow: "hidden" }}>
+          {/* Summary header */}
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "#e2e8f0", marginBottom: 2 }}>{edit.foodName}</div>
+                <div style={{ fontSize: 11.5, color: "#475569" }}>{edit.servingDescription}</div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 24, color: "#34d399", lineHeight: 1 }}>{edit.calories}</div>
+                <div style={{ fontSize: 10, color: "#475569" }}>kcal</div>
+              </div>
+            </div>
+            {result?.note && (
+              <div style={{ marginTop: 9, fontSize: 12, color: "#64748b", fontStyle: "italic", lineHeight: 1.55 }}>💡 {result.note}</div>
+            )}
           </div>
-          <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "1px", marginBottom: 9 }}>ADJUST PORTION IF NEEDED</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
+
+          {/* Editable macro grid */}
+          <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "1px", marginBottom: 10 }}>ADJUST IF NEEDED</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
               {[
                 { key: "calories", label: "Cal", color: "#34d399", unit: "kcal" },
                 { key: "protein", label: "Protein", color: "#fb7185", unit: "g" },
@@ -739,23 +712,23 @@ function PhotoMacroScanner({ onAdd }) {
                 { key: "fat", label: "Fat", color: "#fbbf24", unit: "g" },
               ].map(f => (
                 <div key={f.key} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 10, color: "#475569", marginBottom: 4, fontWeight: 600 }}>{f.label}</div>
+                  <div style={{ fontSize: 10, color: "#475569", marginBottom: 5, fontWeight: 600 }}>{f.label}</div>
                   <input className="inp" type="number" value={edit[f.key]}
                     onChange={e => setEdit(r => ({ ...r, [f.key]: e.target.value }))}
-                    style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${f.color}35`, borderRadius: 9, padding: "7px 3px", color: f.color, fontSize: 15, fontWeight: 700, fontFamily: "'Space Grotesk'", textAlign: "center" }} />
-                  <div style={{ fontSize: 9, color: "#334155", marginTop: 2 }}>{f.unit}</div>
+                    style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: `1px solid ${f.color}35`, borderRadius: 10, padding: "8px 3px", color: f.color, fontSize: 16, fontWeight: 700, fontFamily: "'Space Grotesk'", textAlign: "center" }} />
+                  <div style={{ fontSize: 9, color: "#334155", marginTop: 3 }}>{f.unit}</div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Actions */}
           <div style={{ display: "flex" }}>
-            <button onClick={handleReset} className="ripple" style={{ flex: 1, padding: "13px", background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>← Back</button>
-            <button onClick={handleAdd} className="ripple" style={{ flex: 2, padding: "13px", background: "rgba(52,211,153,0.1)", border: "none", borderLeft: "1px solid rgba(255,255,255,0.05)", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>+ Add to Log</button>
+            <button onClick={handleReset} className="ripple" style={{ flex: 1, padding: "14px", background: "transparent", border: "none", color: "#475569", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>← Search again</button>
+            <button onClick={handleAdd} className="ripple" style={{ flex: 2, padding: "14px", background: "rgba(52,211,153,0.11)", border: "none", borderLeft: "1px solid rgba(255,255,255,0.06)", color: "#34d399", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>+ Add to Log</button>
           </div>
         </div>
       )}
-
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{ display: "none" }} />
     </div>
   );
 }
@@ -826,7 +799,7 @@ function FoodEntryCard({ entry, onDelete }) {
     <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "12px 14px", display: "flex", alignItems: "flex-start", gap: 12 }}>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-          <span style={{ fontSize: 12 }}>{entry.source === "photo" ? "📸" : entry.source === "search" ? "🔍" : "✏️"}</span>
+          <span style={{ fontSize: 12 }}>{entry.source === "photo" ? "📸" : entry.source === "ai" ? "🤖" : "✏️"}</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}>{entry.foodName}</span>
         </div>
         {entry.servingDescription && <div style={{ fontSize: 11, color: "#475569", marginBottom: 6 }}>{entry.servingDescription}</div>}
