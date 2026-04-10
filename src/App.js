@@ -127,7 +127,16 @@ export default function WorkoutApp() {
   };
   const weekKey = getWeekKey();
 
+  const getWeekKeyOffset = (offset) => {
+    const now = new Date(); now.setDate(now.getDate() + (weekOffset + offset) * 7);
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return `${now.getFullYear()}-W${week}`;
+  };
+  const lastWeekKey = getWeekKeyOffset(-1);
+
   const getLog = (dayId, exName, set) => progress?.[weekKey]?.[dayId]?.[exName]?.[set] || { reps: "", weight: "" };
+  const getLastWeekLog = (dayId, exName, set) => progress?.[lastWeekKey]?.[dayId]?.[exName]?.[set] || { reps: "", weight: "" };
   const updateLog = (dayId, exName, set, field, value) => {
     const updated = JSON.parse(JSON.stringify(progress));
     if (!updated[weekKey]) updated[weekKey] = {};
@@ -265,7 +274,7 @@ export default function WorkoutApp() {
                   <ExCard key={i} ex={ex} expanded={expandedEx === ex.name}
                     onToggle={() => setExpandedEx(expandedEx === ex.name ? null : ex.name)}
                     color={day.color} index={i}
-                    dayId={day.id} getLog={getLog} updateLog={updateLog}
+                    dayId={day.id} getLog={getLog} updateLog={updateLog} getLastWeekLog={getLastWeekLog}
                     isTraining={day.type === "training"} />
                 ))}
               </SectionBlock>
@@ -356,7 +365,7 @@ function MiniCard({ item, color }) {
   );
 }
 
-function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog, isTraining }) {
+function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog, getLastWeekLog, isTraining }) {
   const setsLogged = isTraining ? Array.from({ length: ex.sets }).filter((_, i) => getLog(dayId, ex.name, i).reps !== "").length : 0;
   const allDone = isTraining && setsLogged === ex.sets;
 
@@ -429,18 +438,27 @@ function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog
               </div>
               {Array.from({ length: ex.sets }).map((_, si) => {
                 const log = getLog(dayId, ex.name, si);
+                const lastLog = getLastWeekLog(dayId, ex.name, si);
                 const done = log.reps !== "";
+                const hasLastWeek = lastLog.weight !== "" || lastLog.reps !== "";
                 return (
-                  <div key={si} style={{ display: "grid", gridTemplateColumns: "26px 1fr 1fr", gap: 6, marginBottom: 7, alignItems: "center" }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 7, background: done ? `${color}25` : "rgba(255,255,255,0.05)", border: `1.5px solid ${done ? color : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: done ? color : "#475569" }}>{si + 1}</div>
-                    <input className="inp" type="number" placeholder={ex.reps.toString()}
-                      value={log.reps}
-                      onChange={e => updateLog(dayId, ex.name, si, "reps", e.target.value)}
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
-                    <input className="inp" type="text" placeholder="band / lvl"
-                      value={log.weight}
-                      onChange={e => updateLog(dayId, ex.name, si, "weight", e.target.value)}
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
+                  <div key={si} style={{ marginBottom: 9 }}>
+                    {hasLastWeek && (
+                      <div style={{ fontSize: 10, color: "#475569", marginBottom: 3, paddingLeft: 32, fontStyle: "italic" }}>
+                        last week: {lastLog.reps && `${lastLog.reps} reps`}{lastLog.reps && lastLog.weight && " · "}{lastLog.weight && lastLog.weight}
+                      </div>
+                    )}
+                    <div style={{ display: "grid", gridTemplateColumns: "26px 1fr 1fr", gap: 6, alignItems: "center" }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 7, background: done ? `${color}25` : "rgba(255,255,255,0.05)", border: `1.5px solid ${done ? color : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: done ? color : "#475569" }}>{si + 1}</div>
+                      <input className="inp" type="number" placeholder={lastLog.reps || ex.reps.toString()}
+                        value={log.reps}
+                        onChange={e => updateLog(dayId, ex.name, si, "reps", e.target.value)}
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
+                      <input className="inp" type="text" placeholder={lastLog.weight || "band / lvl"}
+                        value={log.weight}
+                        onChange={e => updateLog(dayId, ex.name, si, "weight", e.target.value)}
+                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
+                    </div>
                   </div>
                 );
               })}
