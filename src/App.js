@@ -6,35 +6,39 @@ const DAYS = [
     stretches: [
       { name: "Kneeling Hip Flexor Stretch", reps: "60s each side", note: "The single most important APT correction stretch. Get into a half-kneeling lunge with your back knee on the floor. Squeeze the glute of the back leg and gently push your hips forward until you feel a deep stretch at the front of the hip. The psoas — your deepest hip flexor — is the primary driver of APT. Prolonged sitting shortens it chronically. Do this one even if you skip everything else." },
       { name: "Couch Stretch", reps: "45s each side", note: "Kneel facing away from a wall. Place the top of your back foot up on the surface behind you, front foot forward in a lunge. Slowly bring your torso upright. You will feel an intense stretch through the quad and deep hip flexor. The discomfort means it is working — this is one of the tightest areas in people who sit. Breathe through it and hold." },
-      { name: "Child's Pose", reps: "60s", note: "Kneel and sit back toward your heels, arms stretched forward on the floor. Let your lower back completely decompress — it should feel like space opening between your vertebrae. Breathe deeply into your lower back on each inhale. This counteracts the compression your spine accumulates throughout the day and from training." },
+      { name: "Child's Pose", reps: "60s", note: "Kneel and sit back toward your heels, arms stretched forward on the floor. Let your lower back completely decompress — it should feel like space opening between your vertebrae. Breathe deeply into your lower back on each inhale. This counteracts the compression your spine accumulates throughout to the day and from training." },
       { name: "Lying Hamstring Stretch", reps: "45s each side", note: "Lie on your back. Loop a resistance band around the arch of one foot and hold both ends. Slowly straighten the leg toward the ceiling until you feel a firm pull in the back of the thigh. Keep the opposite leg flat on the floor. Tight hamstrings contribute to APT by pulling the pelvis out of neutral. Do not force the range — hold a comfortable but firm stretch." },
       { name: "Pigeon Pose / Figure-4", reps: "60s each side", note: "For figure-4: lie on your back, cross one ankle over the opposite knee and pull the uncrossed leg toward your chest. For pigeon: bring one shin forward across your body and extend the back leg behind. Both target the glute and piriformis — a tight piriformis limits glute activation, worsening APT. This stretch also benefits the hip rotation needed for soccer." },
     ]
   },
   {
-    id: "tuesday", label: "TUE", title: "Push + Core", type: "training", color: "#34d399", icon: "💪",
+    id: "tuesday", label: "TUE", title: "Gym Push + Pull", type: "training", color: "#34d399", icon: "🏋️",
+    gymDay: true,
     warmup: [
-      { name: "Wrist Extensor Stretch", sets: 2, reps: "30s each", note: "Extend one arm straight in front of you, palm facing down. Use your other hand to gently pull your fingers downward toward the floor until you feel a stretch along the top of the forearm. This directly stretches the extensor tendons involved in tennis elbow. Never skip this before any push or pull session." },
-      { name: "Reverse Wrist Curl", sets: 2, reps: 15, note: "Loop a light band under your foot. Rest your forearm on your thigh with palm facing down. Slowly curl your wrist upward, hold for a beat, then lower with control. This is an eccentric strengthening exercise for the lateral epicondyle — the exact tendon affected by tennis elbow." },
-      { name: "Towel Twist", sets: 2, reps: "10 each dir", note: "Hold a small towel with both hands at shoulder width. Slowly wring it as if squeezing out water — twist in both directions for 10 reps each. This activates the forearm pronators and supinators, warming up the full range of wrist rotation used during pressing movements." },
+      { name: "Wrist Extensor Stretch", sets: 2, reps: "30s each", note: "Arm straight, palm down, pull fingers toward you with the other hand. Hold 30s each side. Stretches the extensor tendons that get inflamed with lateral epicondylitis. Do this before any pressing or pulling — non-negotiable." },
+      { name: "Reverse Wrist Curl", sets: 2, reps: 15, note: "Forearm on thigh, palm down, light dumbbell or cable (2–4 kg max). Lift wrist up, lower slowly over 3 seconds. Eccentrically loads the lateral epicondyle — the most clinically validated treatment for tennis elbow. Light is correct here." },
+      { name: "Cable Face Pull", sets: 2, reps: 15, note: "Rope attachment at face height, very light load — activation only. Pull to forehead, elbows high and wide, hands end up beside ears. Primes the rotator cuff and rear delts before pressing. If the cable station is busy, skip and go straight into A1." },
     ],
     exercises: [
-      { name: "Standing Chest Press", sets: 3, reps: "12-15", anchor: "Step on band, press forward", muscles: "Chest · Triceps · Front Delts", desc: "Stand with feet shoulder-width apart, both feet on the band. Hold a handle in each hand at chest height with elbows bent at roughly 90 degrees. Press both hands forward until arms are nearly straight, then slowly return. The band creates continuous tension throughout the movement and gets harder as you extend.", tip: "Keep elbows slightly below shoulder height — going too high shifts stress to the shoulder joint. Wrists must stay neutral at all times. Exhale as you press, inhale as you return. Slow the return to 3 seconds for maximum muscle stimulus.", search: "resistance band chest press standing" },
-      { name: "Overhead Press", sets: 3, reps: 12, anchor: "Step on band, press overhead", muscles: "Shoulders · Triceps · Upper Traps", desc: "Stand on the band with feet hip-width apart. Hold handles at shoulder height, elbows pointing slightly forward. Press both hands straight overhead until arms are fully extended, then slowly lower back to shoulder height. The band provides ascending resistance — light at the bottom where the shoulder is mechanically weaker.", tip: "Do not press with a wide grip — keep elbows forward to reduce shoulder impingement risk. Use an open palm or loose grip to protect your elbows. Engage your core throughout and do not arch your lower back as you press up.", search: "resistance band overhead shoulder press" },
-      { name: "Lateral Raises", sets: 3, reps: 15, anchor: "Step on band, raise arms to sides", muscles: "Side Deltoids", desc: "Stand on the band with one or both feet. Hold handles at your sides with a slight bend in the elbows. Raise both arms out to the sides simultaneously until they reach shoulder height, then lower with control. This isolates the medial deltoid — the muscle responsible for shoulder width and roundness.", tip: "Lead the movement with your elbows, not your hands — imagine pouring water out of a jug as you raise. Stop at shoulder height; going higher shifts the work to the traps. Keep your torso completely still.", search: "resistance band lateral raise" },
-      { name: "Tricep Pushdown", sets: 3, reps: 12, anchor: "Hold band overhead, push down", muscles: "Triceps", desc: "Loop the band above you or hold it overhead with one hand while the other works. Keep your upper arm pinned against your side, elbow at 90 degrees. Extend your forearm downward until your arm is fully straight, squeezing the tricep hard at the bottom, then slowly return.", tip: "The golden rule: upper arms do not move. If your elbow drifts forward or backward during the rep, you are using momentum rather than the tricep. Wrist stays completely neutral — critical for tennis elbow management.", search: "resistance band tricep pushdown" },
+      { name: "Dumbbell Bench Press", sets: 4, reps: "10-12", superset: "A1", supersetPair: "A", anchor: "Flat bench, dumbbells", muscles: "Chest · Triceps · Front Delt", desc: "Flat bench, dumbbells held with wrists stacked directly over elbows. Controlled 3-second descent, press explosively. Elbows at roughly 45° to the torso — not flared wide, not tucked to your sides.", tip: "Neutral or slight wrist angle — never let the wrists bend back under load. 45° elbow angle protects the shoulder joint and reduces torque on the lateral epicondyle. Full range of motion: touch the chest lightly at the bottom, do not bounce.", search: "dumbbell bench press form" },
+      { name: "Cable Seated Row (neutral grip)", sets: 4, reps: 12, superset: "A2", supersetPair: "A", anchor: "V-bar neutral grip attachment", muscles: "Lats · Rhomboids · Rear Delt · Biceps", desc: "Neutral-grip V-bar on the seated cable row. Drive elbows straight back to your hips — not out to the sides. 3-second return phase is where the lats do most of their work. Full stretch at the start of each rep.", tip: "Open your palm slightly at the catch — a tight white-knuckle grip is the primary tennis elbow trigger in rows. Use the V-bar or rope, not a wide bar. Keep your torso upright with only a slight forward lean — this isn't a deadlift.", search: "cable seated row neutral grip V-bar" },
+      { name: "Dumbbell Shoulder Press", sets: 3, reps: "10-12", superset: "B1", supersetPair: "B", anchor: "Seated or standing, dumbbells", muscles: "Anterior Delt · Medial Delt · Triceps", desc: "Seated or standing, dumbbells at shoulder height. Elbows slightly in front of your body — not flared to 90°. Press straight overhead, full extension at the top, lower with control.", tip: "Elbows-forward pressing angle reduces shoulder impingement risk significantly. Wrists straight, loose grip throughout. Brace your core — do not arch your lower back as you press.", search: "dumbbell overhead shoulder press seated" },
+      { name: "Cable Lat Pulldown (neutral grip)", sets: 3, reps: 12, superset: "B2", supersetPair: "B", anchor: "Neutral grip attachment, cable pulldown", muscles: "Lats · Teres Major · Biceps", desc: "Neutral-grip bar on the pulldown station. Pull to upper chest, driving elbows down toward your hips. Lean back only slightly — about 10–15°. Full stretch at the top of every rep.", tip: "Neutral grip eliminates the forearm supination that aggravates tennis elbow in a standard wide pulldown. Loose grip or open palm if tolerated. The wider your grip, the more elbow torque — stay narrow.", search: "cable lat pulldown neutral grip" },
+      { name: "Cable Lateral Raise", sets: 3, reps: 15, superset: "C1", supersetPair: "C", anchor: "Single cable at hip height, cross-body pull", muscles: "Medial Delt", desc: "Cable at hip height on the opposite side — stand side-on to the machine, reach across your body to grab the handle. Raise your arm out to shoulder height. The cross-body setup provides tension at the bottom of the movement, unlike dumbbells which go slack.", tip: "Elbow leads the movement, slight bend maintained throughout. Stop at shoulder height — going higher shifts the work to the traps. Torso completely still. Cable constant-tension advantage is greatest in the lower half of the range.", search: "cable lateral raise cross body" },
+      { name: "Dumbbell Hammer Curl", sets: 3, reps: 12, superset: "C2", supersetPair: "C", anchor: "Standing, dumbbells neutral grip", muscles: "Brachialis · Brachioradialis · Biceps", desc: "Neutral grip — thumbs pointing up, palms facing each other. Elbows pinned at sides throughout. Curl both hands toward shoulders, lower with control over 3 seconds.", tip: "Neutral grip eliminates the forearm supination that aggravates tennis elbow in standard curls. Do not swing the elbows forward at the top. The 3-second descent is where the brachialis growth stimulus comes from — don't rush it.", search: "dumbbell hammer curl form" },
     ],
     core: [
-      { name: "Posterior Pelvic Tilt Hold", sets: 3, reps: "20s", note: "Lie on your back, knees bent, feet flat. Flatten your lower back completely into the floor by simultaneously contracting your abs and squeezing your glutes — there should be zero gap between your spine and the floor. Hold and breathe. This is the exact opposite movement to anterior pelvic tilt." },
-      { name: "Hollow Body Hold", sets: 3, reps: "20-30s", note: "Lie on your back, extend your arms overhead and legs straight out low to the floor. Press your entire lower back into the ground and brace your core as hard as you can while breathing shallowly. Start with legs at 45 degrees and progress lower over weeks." },
-      { name: "Plank Hold", sets: 3, reps: "30-40s", note: "Forearm plank with elbows directly under shoulders. Squeeze your glutes aggressively — this is the most important cue, not optional. Brace your abs as if you expect to be punched. Your body should form a perfectly straight line from head to heels." },
+      { name: "Cable Pallof Press", sets: 3, reps: "10 each side", note: "Cable at chest height. Stand side-on, arms extended straight in front of you holding the handle. Resist the rotational pull — your core is working anti-rotationally. This is the most functional core exercise in the gym for APT correction. Glutes engaged throughout." },
+      { name: "Dead Bug", sets: 3, reps: "10 each side", note: "Lie on your back, arms at the ceiling, knees at 90° in the air. Lower opposite arm and leg toward the floor simultaneously, hovering just above the surface. Lower back must remain completely flat throughout — this is posterior pelvic tilt held under load." },
+      { name: "Plank", sets: 3, reps: "30-40s", note: "Forearm plank, elbows under shoulders. Squeeze your glutes hard — this is the most important cue and is not optional. A glute-squeezed plank is an APT correction plank. Body forms a straight line from head to heels." },
+      { name: "Kneeling Hip Flexor Stretch", sets: 1, reps: "60s each side", note: "Cooldown stretch. After pressing, hip flexors may have compensated during setup and movement. Kneeling, back glute squeezed, hips forward. Mandatory at the end of every push session." },
     ]
   },
   {
     id: "wednesday", label: "WED", title: "Run 5km", type: "cardio", color: "#38bdf8", icon: "🏃",
     note: "Easy-moderate pace, ~25 min. You should be able to hold a conversation — this is aerobic base building, not a race. Keep your hands and fists completely relaxed throughout; chronic fist-clenching while running transmits tension up the forearm chain and aggravates tennis elbow over time.",
     preRun: [
-      { name: "Kneeling Hip Flexor Stretch", reps: "60s each side", note: "Half-kneeling lunge, back knee on the floor. Squeeze the glute of the back leg and push hips forward gently. Running with tight hip flexors causes your pelvis to tilt forward (APT) and overloads your lower back. This 2-minute investment before every run significantly reduces injury risk." },
+      { name: "Kneeling Hip Flexor Stretch", reps: "60s each side", note: "Half-kneeling lunge, squeeze the back glute and push hips forward gently. Running with tight hip flexors causes your pelvis to tilt forward (APT) and overloads your lower back. This 2-minute investment before every run significantly reduces injury risk." },
       { name: "Leg Swings", reps: "15 each leg", note: "Stand holding a wall for balance. Swing one leg forward and backward like a pendulum, gradually increasing the range over the reps. Then swing side to side. This dynamically lubricates the hip joint with synovial fluid, increases range of motion, and activates the hip flexors and glutes before they are loaded in the run." },
     ]
   },
@@ -96,7 +100,94 @@ const DAYS = [
   }
 ];
 
-const PROGRESS_KEY = "workout_tracker_progress_v3";
+// Returns seconds from strings like "60s each side", "30-40s", "20s" — null if no timer
+function parseTimerSeconds(reps) {
+  if (!reps) return null;
+  const str = reps.toString();
+  if (!str.includes("s")) return null;
+  // For ranges like "30-40s" use the lower bound
+  const match = str.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+function TimerButton({ seconds, color }) {
+  const [remaining, setRemaining] = useState(seconds);
+  const [running, setRunning] = useState(false);
+  const [done, setDone] = useState(false);
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (running && remaining > 0) {
+      intervalRef.current = setInterval(() => {
+        setRemaining(r => {
+          if (r <= 1) {
+            clearInterval(intervalRef.current);
+            setRunning(false);
+            setDone(true);
+            return 0;
+          }
+          return r - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [running]);
+
+  const reset = (e) => {
+    e.stopPropagation();
+    clearInterval(intervalRef.current);
+    setRunning(false);
+    setDone(false);
+    setRemaining(seconds);
+  };
+
+  const toggle = (e) => {
+    e.stopPropagation();
+    if (done) { reset(e); return; }
+    setRunning(r => !r);
+  };
+
+  const progress = remaining / seconds;
+  const r = 11;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * progress;
+
+  const btnColor = done ? "#34d399" : running ? color : color;
+  const bgColor = done ? "rgba(52,211,153,0.15)" : running ? `${color}15` : `${color}10`;
+
+  return (
+    <button onClick={toggle} onContextMenu={reset}
+      title="Tap to start · Tap again to pause · Long-press to reset"
+      style={{
+        display: "flex", alignItems: "center", gap: 6,
+        background: bgColor, border: `1px solid ${btnColor}35`,
+        borderRadius: 20, padding: "4px 10px 4px 6px",
+        cursor: "pointer", flexShrink: 0, transition: "background 0.2s",
+      }}>
+      {/* Ring */}
+      <div style={{ position: "relative", width: 26, height: 26, flexShrink: 0 }}>
+        <svg width="26" height="26" viewBox="0 0 26 26" style={{ transform: "rotate(-90deg)" }}>
+          <circle cx="13" cy="13" r={r} fill="none" stroke={`${btnColor}25`} strokeWidth="2.5" />
+          <circle cx="13" cy="13" r={r} fill="none" stroke={btnColor} strokeWidth="2.5"
+            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+            style={{ transition: running ? "stroke-dasharray 0.9s linear" : "none" }} />
+        </svg>
+        <span style={{
+          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 9, fontWeight: 700, color: btnColor, fontFamily: "'Space Grotesk'",
+        }}>
+          {done ? "✓" : running ? "▐▐" : "▶"}
+        </span>
+      </div>
+      {/* Countdown */}
+      <span style={{ fontSize: 13, fontWeight: 700, color: btnColor, fontFamily: "'Space Grotesk'", minWidth: 26, textAlign: "left" }}>
+        {done ? "Done" : `${remaining}s`}
+      </span>
+    </button>
+  );
+}
+
+const PROGRESS_KEY = "workout_tracker_gym_v1";
 function loadProgress() { try { const r = localStorage.getItem(PROGRESS_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } }
 function saveProgress(d) { try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(d)); } catch {} }
 
@@ -107,14 +198,28 @@ const TYPE_META = {
   sport:    { glow: "rgba(251,191,36,0.12)",  accent: "rgba(251,191,36,0.25)",  label: "SPORT" },
 };
 
-const DAY_MAP = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+// Group exercises by superset pair for display
+function groupBySupersets(exercises) {
+  const groups = [];
+  const seen = {};
+  for (const ex of exercises) {
+    if (!ex.supersetPair) { groups.push({ type: "single", exercises: [ex] }); continue; }
+    if (!seen[ex.supersetPair]) {
+      seen[ex.supersetPair] = { type: "superset", pair: ex.supersetPair, exercises: [] };
+      groups.push(seen[ex.supersetPair]);
+    }
+    seen[ex.supersetPair].exercises.push(ex);
+  }
+  return groups;
+}
 
 export default function WorkoutApp() {
-  const [activeDay, setActiveDay] = useState(() => DAY_MAP[new Date().getDay()]);
+  const [activeDay, setActiveDay] = useState("tuesday");
+  const [activeTab, setActiveTab] = useState("plan");
   const [expandedEx, setExpandedEx] = useState(null);
   const [progress, setProgress] = useState(loadProgress);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [activeSection, setActiveSection] = useState("workout"); // "workout" | "stats"
+  const [activeSection, setActiveSection] = useState("workout");
   const scrollRef = useRef(null);
 
   const day = DAYS.find(d => d.id === activeDay) || DAYS[0];
@@ -127,16 +232,7 @@ export default function WorkoutApp() {
   };
   const weekKey = getWeekKey();
 
-  const getWeekKeyOffset = (offset) => {
-    const now = new Date(); now.setDate(now.getDate() + (weekOffset + offset) * 7);
-    const jan1 = new Date(now.getFullYear(), 0, 1);
-    const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-    return `${now.getFullYear()}-W${week}`;
-  };
-  const lastWeekKey = getWeekKeyOffset(-1);
-
   const getLog = (dayId, exName, set) => progress?.[weekKey]?.[dayId]?.[exName]?.[set] || { reps: "", weight: "" };
-  const getLastWeekLog = (dayId, exName, set) => progress?.[lastWeekKey]?.[dayId]?.[exName]?.[set] || { reps: "", weight: "" };
   const updateLog = (dayId, exName, set, field, value) => {
     const updated = JSON.parse(JSON.stringify(progress));
     if (!updated[weekKey]) updated[weekKey] = {};
@@ -157,9 +253,11 @@ export default function WorkoutApp() {
   const trainingDays = DAYS.filter(d => d.exercises?.length).length;
 
   const switchDay = (id) => {
-    setActiveDay(id); setExpandedEx(null);
+    setActiveDay(id); setActiveTab("plan"); setExpandedEx(null);
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const isGymDay = day.gymDay === true;
 
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#080810", fontFamily: "'DM Sans', sans-serif", color: "#e2e8f0", overflow: "hidden" }}>
@@ -180,7 +278,6 @@ export default function WorkoutApp() {
         .inp:focus { outline: none; border-color: rgba(52,211,153,0.5) !important; background: rgba(52,211,153,0.04) !important; }
       `}</style>
 
-      {/* STATUS BAR SPACER */}
       <div style={{ height: "env(safe-area-inset-top, 0px)", background: "#080810" }} />
 
       {/* TOP HEADER */}
@@ -245,18 +342,39 @@ export default function WorkoutApp() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 17, color: "#fff" }}>{day.title}</div>
                     <span style={{ fontSize: 10, background: `${day.color}25`, color: day.color, borderRadius: 6, padding: "2px 7px", fontWeight: 700, letterSpacing: "0.5px" }}>{TYPE_META[day.type].label}</span>
+                    {isGymDay && <span style={{ fontSize: 10, background: "rgba(251,191,36,0.15)", color: "#fbbf24", borderRadius: 6, padding: "2px 7px", fontWeight: 700, letterSpacing: "0.5px" }}>GYM</span>}
                   </div>
                   <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
-                    {day.type === "training" ? `${day.exercises?.length || 0} exercises · 3 rounds · ~25 min` :
+                    {isGymDay ? `${day.exercises?.length || 0} exercises · 3 supersets · ~45 min` :
+                      day.type === "training" ? `${day.exercises?.length || 0} exercises · 3 rounds · ~25 min` :
                       day.type === "cardio" ? "~25 min · 5km aerobic base" :
                       day.type === "sport" ? "60–90 min · full body" : "Active recovery · 10 min"}
                   </div>
                 </div>
               </div>
               {day.note && <div style={{ marginTop: 12, fontSize: 12.5, color: "#94a3b8", lineHeight: 1.65, borderTop: `1px solid ${day.color}20`, paddingTop: 12 }}>{day.note}</div>}
+              {isGymDay && (
+                <div style={{ marginTop: 12, fontSize: 12, color: "#fbbf24", lineHeight: 1.6, borderTop: `1px solid ${day.color}20`, paddingTop: 12, background: "rgba(251,191,36,0.06)", borderRadius: 10, padding: "10px 12px", marginTop: 12 }}>
+                  💡 <strong>Superset protocol:</strong> Do A1, rest 60s, do A2, rest 60s, repeat 3–4 rounds — then move to B. Each muscle gets ~2 min rest while total session time is cut in half.
+                </div>
+              )}
             </div>
 
-
+            {/* PLAN / TRACK TABS */}
+            {day.type === "training" && (
+              <div style={{ display: "flex", gap: 4, marginBottom: 14, background: "rgba(255,255,255,0.04)", borderRadius: 14, padding: 4 }}>
+                {[{ id: "plan", label: "Exercises", icon: "📋" }, { id: "track", label: "Log Sets", icon: "📊" }].map(tab => (
+                  <button key={tab.id} className="ripple" onClick={() => setActiveTab(tab.id)} style={{
+                    flex: 1, padding: "10px", border: "none", borderRadius: 11,
+                    background: activeTab === tab.id ? "rgba(255,255,255,0.1)" : "transparent",
+                    color: activeTab === tab.id ? "#fff" : "#64748b",
+                    cursor: "pointer", fontSize: 13, fontWeight: 600,
+                    boxShadow: activeTab === tab.id ? "0 2px 8px rgba(0,0,0,0.3)" : "none",
+                    transition: "all 0.2s"
+                  }}>{tab.icon} {tab.label}</button>
+                ))}
+              </div>
+            )}
 
             {/* WARMUP */}
             {day.warmup && <SectionBlock title="Warm-Up" icon="🔥" color="#fbbf24">
@@ -267,15 +385,43 @@ export default function WorkoutApp() {
               {day.preRun.map((w, i) => <MiniCard key={i} item={w} color="#38bdf8" />)}
             </SectionBlock>}
 
-            {/* EXERCISES - unified card with inline logging */}
-            {day.exercises && (
-              <SectionBlock title="Main Lifts" icon="💪" color={day.color}>
+            {/* EXERCISES - Plan (gym day uses superset groups) */}
+            {(activeTab === "plan" || day.type !== "training") && day.exercises && (
+              isGymDay ? (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                    <span style={{ fontSize: 14 }}>💪</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", color: day.color, textTransform: "uppercase" }}>Main Lifts</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {groupBySupersets(day.exercises).map((group, gi) => (
+                      group.type === "superset" ? (
+                        <SupersetGroup key={gi} group={group} color={day.color}
+                          expandedEx={expandedEx} setExpandedEx={setExpandedEx} />
+                      ) : (
+                        <ExCard key={gi} ex={group.exercises[0]} expanded={expandedEx === group.exercises[0].name}
+                          onToggle={() => setExpandedEx(expandedEx === group.exercises[0].name ? null : group.exercises[0].name)}
+                          color={day.color} index={gi} isGym={true} />
+                      )
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <SectionBlock title="Main Lifts" icon="💪" color={day.color}>
+                  {day.exercises.map((ex, i) => (
+                    <ExCard key={i} ex={ex} expanded={expandedEx === ex.name}
+                      onToggle={() => setExpandedEx(expandedEx === ex.name ? null : ex.name)}
+                      color={day.color} index={i} />
+                  ))}
+                </SectionBlock>
+              )
+            )}
+
+            {/* EXERCISES - Track */}
+            {activeTab === "track" && day.type === "training" && day.exercises && (
+              <SectionBlock title="Log Sets" icon="📊" color={day.color}>
                 {day.exercises.map((ex, i) => (
-                  <ExCard key={i} ex={ex} expanded={expandedEx === ex.name}
-                    onToggle={() => setExpandedEx(expandedEx === ex.name ? null : ex.name)}
-                    color={day.color} index={i}
-                    dayId={day.id} getLog={getLog} updateLog={updateLog} getLastWeekLog={getLastWeekLog}
-                    isTraining={day.type === "training"} />
+                  <TrackCard key={i} ex={ex} dayId={day.id} getLog={getLog} updateLog={updateLog} color={day.color} isGym={isGymDay} />
                 ))}
               </SectionBlock>
             )}
@@ -325,6 +471,29 @@ export default function WorkoutApp() {
   );
 }
 
+// Superset group wrapper — shows a labeled bracket around paired exercises
+function SupersetGroup({ group, color, expandedEx, setExpandedEx }) {
+  const pairColors = { A: "#34d399", B: "#38bdf8", C: "#c084fc" };
+  const pairColor = pairColors[group.pair] || color;
+  return (
+    <div style={{ border: `1px solid ${pairColor}25`, borderRadius: 18, overflow: "hidden" }}>
+      {/* Superset header strip */}
+      <div style={{ background: `${pairColor}10`, padding: "7px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "1px", color: pairColor }}>SUPERSET {group.pair}</span>
+        <span style={{ fontSize: 10, color: "#475569" }}>· do both back to back · 60s rest between rounds</span>
+      </div>
+      {/* Exercises */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "rgba(255,255,255,0.02)" }}>
+        {group.exercises.map((ex, i) => (
+          <ExCard key={i} ex={ex} expanded={expandedEx === ex.name}
+            onToggle={() => setExpandedEx(expandedEx === ex.name ? null : ex.name)}
+            color={pairColor} index={i} isGym={true} inSuperset={true} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SectionBlock({ title, icon, color, badge, children }) {
   return (
     <div style={{ marginBottom: 20 }}>
@@ -342,6 +511,7 @@ function SectionBlock({ title, icon, color, badge, children }) {
 
 function MiniCard({ item, color }) {
   const [open, setOpen] = useState(false);
+  const timerSecs = parseTimerSeconds(item.reps);
   return (
     <div onClick={() => item.note && setOpen(o => !o)} style={{
       background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)",
@@ -351,8 +521,11 @@ function MiniCard({ item, color }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, color: "#e2e8f0" }}>{item.name}</div>
-          {item.sets && <div style={{ fontSize: 11, color, marginTop: 3 }}>{item.sets} sets × {item.reps}</div>}
-          {!item.sets && item.reps && <div style={{ fontSize: 11, color, marginTop: 3 }}>{item.reps}</div>}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, flexWrap: "wrap" }}>
+            {item.sets && <div style={{ fontSize: 11, color }}>{item.sets} sets × {item.reps}</div>}
+            {!item.sets && item.reps && <div style={{ fontSize: 11, color }}>{item.reps}</div>}
+            {timerSecs && <TimerButton key={item.name} seconds={timerSecs} color={color} />}
+          </div>
         </div>
         {item.note && <span style={{ color: "#475569", fontSize: 14, marginLeft: 8, flexShrink: 0, transition: "transform 0.2s", display: "inline-block", transform: open ? "rotate(180deg)" : "none" }}>⌄</span>}
       </div>
@@ -365,22 +538,22 @@ function MiniCard({ item, color }) {
   );
 }
 
-function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog, getLastWeekLog, isTraining }) {
-  const setsLogged = isTraining ? Array.from({ length: ex.sets }).filter((_, i) => getLog(dayId, ex.name, i).reps !== "").length : 0;
-  const allDone = isTraining && setsLogged === ex.sets;
-
+function ExCard({ ex, expanded, onToggle, color, index, isGym, inSuperset }) {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.035)", border: `1px solid ${expanded ? color + "40" : allDone ? color + "30" : "rgba(255,255,255,0.07)"}`,
-      borderRadius: 16, overflow: "hidden", transition: "border-color 0.2s",
+      background: inSuperset ? "transparent" : "rgba(255,255,255,0.035)",
+      border: inSuperset ? "none" : `1px solid ${expanded ? color + "40" : "rgba(255,255,255,0.07)"}`,
+      borderRadius: inSuperset ? 0 : 16,
+      overflow: "hidden", transition: "border-color 0.2s",
+      borderBottom: inSuperset ? "1px solid rgba(255,255,255,0.05)" : undefined,
     }}>
       <button onClick={onToggle} className="ripple" style={{
         width: "100%", padding: "14px 16px", background: "transparent",
         border: "none", cursor: "pointer", textAlign: "left",
         display: "flex", alignItems: "center", gap: 12
       }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: allDone ? `${color}30` : `${color}18`, border: `1px solid ${allDone ? color + "80" : color + "33"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 13, color }}>{allDone ? "✓" : index + 1}</span>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}18`, border: `1px solid ${color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 12, color }}>{ex.superset || (index + 1)}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ex.name}</div>
@@ -388,11 +561,6 @@ function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog
         </div>
         <div style={{ flexShrink: 0, textAlign: "right" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color }}>{ex.sets}×{ex.reps}</div>
-          {isTraining && (
-            <div style={{ fontSize: 10, color: allDone ? color : "#475569", marginTop: 2 }}>
-              {allDone ? "done" : setsLogged > 0 ? `${setsLogged}/${ex.sets} sets` : ""}
-            </div>
-          )}
           <span style={{ fontSize: 18, color: "#475569", display: "block", transition: "transform 0.2s", transform: expanded ? "rotate(180deg)" : "none" }}>⌄</span>
         </div>
       </button>
@@ -411,7 +579,7 @@ function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog
 
           {/* Setup */}
           <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
-            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "1px", marginBottom: 4, fontWeight: 700 }}>SETUP</div>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "1px", marginBottom: 4, fontWeight: 700 }}>EQUIPMENT</div>
             <div style={{ fontSize: 13, color: "#94a3b8" }}>{ex.anchor}</div>
           </div>
 
@@ -422,54 +590,72 @@ function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog
           </div>}
 
           {/* Tip */}
-          <div style={{ background: `${color}0d`, border: `1px solid ${color}30`, borderRadius: 10, padding: "10px 12px", marginBottom: isTraining ? 12 : 0 }}>
+          <div style={{ background: `${color}0d`, border: `1px solid ${color}30`, borderRadius: 10, padding: "10px 12px" }}>
             <div style={{ fontSize: 10, color, letterSpacing: "1px", marginBottom: 4, fontWeight: 700 }}>💡 COACHING TIP</div>
             <div style={{ fontSize: 13, color: "#e2e8f0", lineHeight: 1.65 }}>{ex.tip}</div>
           </div>
-
-          {/* Inline set logging */}
-          {isTraining && (
-            <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 12px 8px", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: 10, color, letterSpacing: "1px", fontWeight: 700, marginBottom: 10 }}>📊 LOG SETS</div>
-              <div style={{ display: "grid", gridTemplateColumns: "26px 1fr 1fr", gap: 6, marginBottom: 6 }}>
-                <div />
-                <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "0.8px" }}>REPS</div>
-                <div style={{ fontSize: 10, color: "#475569", fontWeight: 700, letterSpacing: "0.8px" }}>RESISTANCE</div>
-              </div>
-              {Array.from({ length: ex.sets }).map((_, si) => {
-                const log = getLog(dayId, ex.name, si);
-                const lastLog = getLastWeekLog(dayId, ex.name, si);
-                const done = log.reps !== "";
-                const hasLastWeek = lastLog.weight !== "" || lastLog.reps !== "";
-                return (
-                  <div key={si} style={{ marginBottom: 9 }}>
-                    {hasLastWeek && (
-                      <div style={{ fontSize: 10, color: "#475569", marginBottom: 3, paddingLeft: 32, fontStyle: "italic" }}>
-                        last week: {lastLog.reps && `${lastLog.reps} reps`}{lastLog.reps && lastLog.weight && " · "}{lastLog.weight && lastLog.weight}
-                      </div>
-                    )}
-                    <div style={{ display: "grid", gridTemplateColumns: "26px 1fr 1fr", gap: 6, alignItems: "center" }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 7, background: done ? `${color}25` : "rgba(255,255,255,0.05)", border: `1.5px solid ${done ? color : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: done ? color : "#475569" }}>{si + 1}</div>
-                      <input className="inp" type="number" placeholder={lastLog.reps || ex.reps.toString()}
-                        value={log.reps}
-                        onChange={e => updateLog(dayId, ex.name, si, "reps", e.target.value)}
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
-                      <input className="inp" type="text" placeholder={lastLog.weight || "band / lvl"}
-                        value={log.weight}
-                        onChange={e => updateLog(dayId, ex.name, si, "weight", e.target.value)}
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
     </div>
   );
 }
 
+function TrackCard({ ex, dayId, getLog, updateLog, color, isGym }) {
+  const timerSecs = parseTimerSeconds(ex.reps);
+  return (
+    <div style={{ background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "14px 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        {ex.superset && (
+          <span style={{ fontSize: 10, background: `${color}20`, color, borderRadius: 6, padding: "2px 7px", fontWeight: 700, letterSpacing: "0.5px" }}>{ex.superset}</span>
+        )}
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#e2e8f0" }}>{ex.name}</div>
+      </div>
+      {timerSecs ? (
+        // Timed exercise — show per-set timers instead of reps input
+        <div>
+          <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px", fontWeight: 700, marginBottom: 8 }}>
+            {ex.sets} sets · {ex.reps} each — tap to time each set
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {Array.from({ length: ex.sets }).map((_, si) => (
+              <div key={si} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#475569", flexShrink: 0 }}>{si + 1}</div>
+                <TimerButton key={`${ex.name}-${si}`} seconds={timerSecs} color={color} />
+                <span style={{ fontSize: 12, color: "#475569" }}>{ex.reps}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        // Rep-based exercise — normal inputs
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 1fr", gap: 6, marginBottom: 6 }}>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px", fontWeight: 700 }}></div>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px", fontWeight: 700 }}>REPS</div>
+            <div style={{ fontSize: 10, color: "#475569", letterSpacing: "0.8px", fontWeight: 700 }}>{isGym ? "WEIGHT" : "RESISTANCE"}</div>
+          </div>
+          {Array.from({ length: ex.sets }).map((_, si) => {
+            const log = getLog(dayId, ex.name, si);
+            const done = log.reps !== "";
+            return (
+              <div key={si} style={{ display: "grid", gridTemplateColumns: "28px 1fr 1fr", gap: 6, marginBottom: 7, alignItems: "center" }}>
+                <div style={{ width: 26, height: 26, borderRadius: 8, background: done ? `${color}25` : "rgba(255,255,255,0.05)", border: `1.5px solid ${done ? color : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: done ? color : "#475569" }}>{si + 1}</div>
+                <input className="inp" type="number" placeholder={ex.reps.toString()}
+                  value={log.reps}
+                  onChange={e => updateLog(dayId, ex.name, si, "reps", e.target.value)}
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "8px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
+                <input className="inp" type="text" placeholder={isGym ? "kg / lbs" : "band / lvl"}
+                  value={log.weight}
+                  onChange={e => updateLog(dayId, ex.name, si, "weight", e.target.value)}
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "8px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+}
 
 function StatsView({ completedDays, trainingDays }) {
   const stats = [
@@ -483,16 +669,11 @@ function StatsView({ completedDays, trainingDays }) {
     { label: "Daily Protein", val: "185–200g", sub: "non-negotiable", color: "#fb7185" },
   ];
 
-  const fatLost = 5.2;
-  const fatGoal = 5.5;
-  const progress = (fatLost / fatGoal) * 100;
-
   return (
     <div style={{ padding: "16px 14px 32px" }}>
       <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 20, color: "#fff", marginBottom: 4 }}>Recomp Targets</div>
       <div style={{ fontSize: 12, color: "#475569", marginBottom: 18 }}>5–8 month timeline · Scale barely moves</div>
 
-      {/* Progress ring */}
       <div style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 20, padding: "18px 20px", marginBottom: 16 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "#34d399", letterSpacing: "1px", marginBottom: 12 }}>WEEKLY COMPLETION</div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -516,7 +697,6 @@ function StatsView({ completedDays, trainingDays }) {
         </div>
       </div>
 
-      {/* Body comp grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "12px 14px" }}>
@@ -527,7 +707,6 @@ function StatsView({ completedDays, trainingDays }) {
         ))}
       </div>
 
-      {/* Timeline reminder */}
       <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "14px 16px" }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "1px", marginBottom: 8 }}>REMEMBER</div>
         <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.65 }}>
