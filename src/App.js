@@ -839,7 +839,7 @@ function ExCard({ ex, expanded, onToggle, color, index, dayId, getLog, updateLog
                         value={log.reps}
                         onChange={e => updateLog(dayId, ex.name, si, "reps", e.target.value)}
                         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
-                      <input className="inp" type="text" placeholder={lastLog.weight || "band / lvl"}
+                      <input className="inp" type="number" inputMode="decimal" step="any" min="0" placeholder={lastLog.weight || "resistance"}
                         value={log.weight}
                         onChange={e => updateLog(dayId, ex.name, si, "weight", e.target.value)}
                         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 9, padding: "7px 10px", color: "#e2e8f0", fontSize: 14, width: "100%", fontFamily: "'DM Sans'" }} />
