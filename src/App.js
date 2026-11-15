@@ -915,8 +915,8 @@ function StatsView({ completedDays, trainingDays }) {
     { l: "Body fat", v: `${fmt(bf0)}%`, s: `goal ${TARGET_BF}%`, c: "#fb923c" },
     { l: "Goal weight", v: `${fmt(goalWeight)} lbs`, s: "if lean mass is kept", c: "#34d399" },
     { l: "Waist", v: waistNow != null ? `${fmt(waistNow)} in` : "–", s: waistNow != null && waistFirst != null ? `${waistNow - waistFirst > 0 ? "+" : ""}${fmt(waistNow - waistFirst)} since start` : "log to track", c: "#38bdf8" },
-    { l: "Avg calories (7d)", v: calAvg != null ? Math.round(calAvg).toLocaleString() : "–", s: "target 1,900–2,100", c: "#fbbf24" },
-    { l: "Avg protein (7d)", v: proAvg != null ? `${Math.round(proAvg)} g` : "–", s: "target 125–145 g", c: "#fb7185" },
+    { l: "Avg calories (7d)", v: calAvg != null ? Math.round(calAvg).toLocaleString() : "–", s: "target 1,550–1,650", c: "#fbbf24" },
+    { l: "Avg protein (7d)", v: proAvg != null ? `${Math.round(proAvg)} g` : "–", s: "target 130–145 g", c: "#fb7185" },
     { l: "Fat to lose", v: `${fmt(Math.max(0, w0 - goalWeight))} lbs`, s: "to reach 12%", c: "#c084fc" },
   ];
   const recent = [...sorted].reverse().slice(0, 7);
